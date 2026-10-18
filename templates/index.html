@@ -1,132 +1,675 @@
 <!doctype html>
+
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b0f19">
-  <meta name="csrf-token" content="{{ csrf_token }}">
-  <meta name="description" content="AURREXA — a focused AI conversation space.">
-  <title>AURREXA — AI Conversation Space</title>
+  <meta name="theme-color" content="#05070b">
+  <meta name="description" content="AURREXA — Your private AI workspace.">
+  <title>AURREXA.AI — Your Private AI Space</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/Aurrexa-ai/static/style.css">
+
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #05070b;
+      --panel: #090d14;
+      --border: rgba(255,255,255,.09);
+      --blue: #00a6ff;
+      --muted: #8995a7;
+      --text: #edf5ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, sans-serif;
+    }
+
+    button, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 270px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 25px 18px;
+      background: #080b11;
+      border-right: 1px solid var(--border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+      color: white;
+      text-decoration: none;
+    }
+
+    .brand-mark-wrap {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(0,166,255,.35);
+      border-radius: 14px;
+      background: rgba(0,166,255,.08);
+      box-shadow: 0 0 25px rgba(0,166,255,.08);
+      overflow: hidden;
+    }
+
+    .brand-mark { width: 100%; height: 100%; object-fit: cover; }
+
+    .brand-name {
+      font: 700 23px "Space Grotesk", sans-serif;
+      letter-spacing: 2px;
+    }
+
+    .brand-period { color: var(--blue); }
+
+    .sidebar-rule {
+      height: 1px;
+      background: var(--border);
+      margin: 28px 0;
+    }
+
+    .sidebar-label {
+      color: #68768a;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+
+    .identity-card {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 17px;
+      padding: 15px 12px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: rgba(255,255,255,.025);
+    }
+
+    .identity-orb {
+      width: 10px;
+      height: 10px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow: 0 0 15px var(--blue);
+    }
+
+    .identity-caption {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: 1.5px;
+    }
+
+    .identity-email { font-size: 12px; color: #e1eaf6; }
+
+    .sidebar-action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      margin-top: 13px;
+      padding: 13px;
+      border: 1px solid rgba(0,166,255,.4);
+      border-radius: 10px;
+      background: rgba(0,166,255,.08);
+      color: #eaf7ff;
+      text-decoration: none;
+      transition: .2s;
+    }
+
+    .sidebar-action:hover, .google-signin:hover {
+      background: rgba(0,166,255,.16);
+      border-color: var(--blue);
+    }
+
+    .google-g { font-weight: 700; color: #8ecfff; }
+
+    .sidebar-section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 38px;
+    }
+
+    .history-hint {
+      margin-top: 15px;
+      color: #738096;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .sidebar-bottom { margin-top: auto; }
+
+    .privacy-chip {
+      padding: 11px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #9daec2;
+      font-size: 11px;
+    }
+
+    .privacy-lock { margin-right: 7px; color: var(--blue); }
+
+    .sidebar-footer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 23px;
+      color: #77859a;
+      font-size: 9px;
+      letter-spacing: 1.4px;
+    }
+
+    .footer-signal {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00d7a0;
+      box-shadow: 0 0 9px #00d7a0;
+    }
+
+    .footer-version { margin-left: auto; }
+
+    .main-panel {
+      display: flex;
+      flex-direction: column;
+      width: calc(100% - 270px);
+      min-width: 0;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 87px;
+      padding: 20px 36px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-kicker {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--blue);
+      font-size: 9px;
+      letter-spacing: 2.4px;
+    }
+
+    .topbar-heading {
+      font: 600 19px "Space Grotesk", sans-serif;
+    }
+
+    .topbar-status {
+      color: #8492a6;
+      font-size: 9px;
+      letter-spacing: 1.3px;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: #00d7a0;
+    }
+
+    .conversation {
+      position: relative;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      overflow: hidden;
+    }
+
+    .login-stage {
+      position: relative;
+      width: min(100%, 620px);
+      padding: 50px 20px;
+      text-align: center;
+    }
+
+    .login-glow {
+      position: absolute;
+      z-index: 0;
+      top: 8%;
+      left: 50%;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: rgba(0,166,255,.11);
+      filter: blur(100px);
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    .login-content { position: relative; z-index: 1; }
+
+    .login-logo-frame, .empty-logo-frame {
+      display: grid;
+      place-items: center;
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 30px;
+      overflow: hidden;
+      border: 1px solid rgba(0,166,255,.35);
+      border-radius: 23px;
+      background: #0a1420;
+      box-shadow: 0 0 45px rgba(0,166,255,.1);
+    }
+
+    .login-logo, .empty-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .eyebrow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      color: #8ea2b9;
+      font-size: 9px;
+      letter-spacing: 2px;
+    }
+
+    .eyebrow-line {
+      width: 24px;
+      height: 1px;
+      background: var(--blue);
+    }
+
+    h1 {
+      margin: 25px 0 17px;
+      font: 600 clamp(42px, 6vw, 68px)/1.08 "Space Grotesk", sans-serif;
+      letter-spacing: -2.5px;
+    }
+
+    h1 span {
+      color: var(--blue);
+      text-shadow: 0 0 35px rgba(0,166,255,.2);
+    }
+
+    .login-content > p {
+      max-width: 400px;
+      margin: 0 auto;
+      color: #8b9aaf;
+      font-size: 14px;
+      line-height: 1.9;
+    }
+
+    .google-signin {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 13px;
+      width: min(100%, 310px);
+      margin: 30px auto 18px;
+      padding: 16px;
+      border: 1px solid rgba(0,166,255,.4);
+      border-radius: 12px;
+      background: rgba(0,166,255,.08);
+      color: white;
+      text-decoration: none;
+      transition: .2s;
+    }
+
+    .signin-arrow { margin-left: auto; color: var(--blue); }
+
+    .login-assurance {
+      color: #718096;
+      font-size: 11px;
+    }
+
+    .login-corner-mark {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      color: rgba(0,166,255,.12);
+      font: 700 70px "Space Grotesk", sans-serif;
+    }
+
+    .composer-dock {
+      padding: 18px 28px 15px;
+      border-top: 1px solid var(--border);
+      background: #080b11;
+    }
+
+    .composer {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 13px 15px 10px;
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 15px;
+      background: #0b111b;
+      transition: border-color .2s;
+    }
+
+    .composer:focus-within { border-color: rgba(0,166,255,.65); }
+
+    .composer textarea {
+      display: block;
+      width: 100%;
+      min-height: 48px;
+      resize: vertical;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: white;
+      line-height: 1.7;
+    }
+
+    .composer textarea::placeholder { color: #718096; }
+
+    .composer-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .composer-context, .keyboard-hint {
+      color: #728197;
+      font-size: 10px;
+    }
+
+    .context-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .composer-right { display: flex; align-items: center; gap: 14px; }
+
+    .send-button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border: 0;
+      border-radius: 9px;
+      background: var(--blue);
+      color: #00111d;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .send-button:hover { filter: brightness(1.12); }
+
+    .composer-disclaimer {
+      margin: 11px auto 0;
+      color: #5e6c80;
+      font-size: 10px;
+      text-align: center;
+    }
+
+    .login-footer {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      padding: 19px;
+      color: #69788d;
+      font-size: 9px;
+      letter-spacing: 1.4px;
+    }
+
+    .footer-divider { width: 1px; background: var(--border); }
+
+    .mobile-menu { display: none; }
+
+    @media (max-width: 760px) {
+      .sidebar {
+        position: fixed;
+        z-index: 10;
+        inset: 0 auto 0 0;
+        width: 270px;
+        transform: translateX(-100%);
+        transition: transform .25s;
+      }
+
+      .sidebar.open { transform: translateX(0); }
+
+      .main-panel { width: 100%; }
+
+      .topbar { min-height: 75px; padding: 15px 18px; }
+
+      .mobile-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: transparent;
+      }
+
+      .mobile-menu span { width: 17px; height: 2px; background: white; }
+
+      .topbar-heading { font-size: 15px; }
+      .topbar-status { display: none; }
+
+      .conversation { padding: 25px 16px; }
+      .login-stage { padding: 25px 8px; }
+      h1 { letter-spacing: -1.5px; }
+
+      .composer-dock { padding: 13px; }
+      .composer-context { font-size: 9px; }
+      .keyboard-hint { display: none; }
+      .composer-right { margin-left: auto; }
+    }
+  </style>
+
 </head>
-<body data-authenticated="{{ 'true' if user.is_authenticated else 'false' }}" data-user-email="{{ user.email if user.is_authenticated else '' }}">
+
+<body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar" aria-label="AURREXA navigation">
-      <a class="brand" href="/" aria-label="AURREXA home">
-        <span class="brand-mark-wrap"><img class="brand-mark" src="{{ url_for('static', filename='aurrexa-mark.jpeg') }}" alt="AURREXA crystalline A logo"></span>
+      <a class="brand" href="/Aurrexa-ai/" aria-label="AURREXA home">
+        <span class="brand-mark-wrap">
+          <img class="brand-mark" src="/Aurrexa-ai/static/aurrexa-mark.jpeg" alt="AURREXA logo">
+        </span>
         <span class="brand-name">AURREXA<span class="brand-period">.</span></span>
       </a>
 
-      <div class="sidebar-rule"></div>
-      <div class="sidebar-label">YOUR WORKSPACE</div>
-      {% if user.is_authenticated %}
-        <div class="identity-card">
-          <span class="identity-orb" aria-hidden="true"></span>
-          <div class="identity-copy">
-            <span class="identity-caption">SIGNED IN AS</span>
-            <span class="identity-email" title="{{ user.email }}">{{ user.email }}</span>
-          </div>
-        </div>
-        <form class="logout-form" action="{{ url_for('logout') }}" method="post" id="logoutForm">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button class="sidebar-action" type="submit" id="logoutButton">
-            <span class="action-icon" aria-hidden="true">↗</span><span>Log out</span>
-          </button>
-        </form>
-      {% else %}
-        <div class="identity-card identity-card-muted">
-          <span class="identity-orb identity-orb-muted" aria-hidden="true"></span>
-          <div class="identity-copy">
-            <span class="identity-caption">PRIVATE WORKSPACE</span>
-            <span class="identity-email">Sign in to continue</span>
-          </div>
-        </div>
-        <a class="sidebar-action sidebar-login" href="{{ url_for('google_login') }}">
-          <span class="google-g" aria-hidden="true">G</span><span>Continue with Google</span><span class="action-arrow" aria-hidden="true">↗</span>
-        </a>
-      {% endif %}
+```
+  <div class="sidebar-rule"></div>
+  <div class="sidebar-label">YOUR WORKSPACE</div>
 
-      <div class="sidebar-section-heading">
-        <span class="sidebar-label">RECENT EXCHANGES</span>
-        {% if user.is_authenticated %}<span class="live-dot" aria-label="History connected"></span>{% endif %}
-      </div>
-      <div class="history-hint" id="historyHint">{% if user.is_authenticated %}Your saved conversations appear in the chat feed.{% else %}Sign in to load your private chat history.{% endif %}</div>
-
-      <div class="sidebar-bottom">
-        <div class="privacy-chip"><span class="privacy-lock" aria-hidden="true">◈</span><span>Private by design</span></div>
-        <div class="sidebar-footer"><span class="footer-signal"></span><span>AURREXA CORE</span><span class="footer-version">v1.0</span></div>
-      </div>
-    </aside>
-
-    <main class="main-panel">
-      <header class="topbar">
-        <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Open navigation" aria-expanded="false"><span></span><span></span></button>
-        <div class="topbar-title"><span class="topbar-kicker">AI CONVERSATION SPACE</span><span class="topbar-heading">Your thinking, amplified.</span></div>
-        <div class="topbar-status"><span class="status-indicator"></span><span>{% if user.is_authenticated %}SECURE SESSION{% else %}AUTHENTICATION REQUIRED{% endif %}</span></div>
-      </header>
-
-      <section class="conversation" aria-label="Conversation">
-        <div class="flash-stack" id="flashStack" aria-live="polite">
-          {% for category, message in get_flashed_messages(with_categories=true) %}
-            <div class="flash-message flash-{{ category }}" role="status">{{ message }}</div>
-          {% endfor %}
-        </div>
-
-        {% if user.is_authenticated %}
-          <div class="history-loader-row" id="historyLoaderRow" hidden>
-            <button class="load-earlier" id="loadEarlier" type="button">↑ &nbsp; Load earlier exchanges</button>
-          </div>
-          <div class="message-feed" id="messageFeed" role="log" aria-live="polite" aria-relevant="additions text">
-            <div class="loading-history" id="loadingHistory"><span class="mini-spinner" aria-hidden="true"></span><span>Restoring your conversations…</span></div>
-          </div>
-          <div class="empty-state" id="emptyState" hidden>
-            <div class="empty-logo-frame"><img src="{{ url_for('static', filename='aurrexa-mark.jpeg') }}" alt="" class="empty-logo"></div>
-            <div class="eyebrow"><span class="eyebrow-line"></span> AURREXA INTELLIGENCE <span class="eyebrow-line"></span></div>
-            <h1>Where will your<br><span>curiosity lead?</span></h1>
-            <p>Start with a question. Keep every useful answer in your private history.</p>
-            <div class="suggestion-list" aria-label="Suggested prompts">
-              <button class="suggestion" type="button" data-prompt="Help me think through a difficult decision."><span>01</span><span>Think through a difficult decision</span><span class="suggestion-arrow">↗</span></button>
-              <button class="suggestion" type="button" data-prompt="Explain a complex idea in simple terms."><span>02</span><span>Make a complex idea feel simple</span><span class="suggestion-arrow">↗</span></button>
-              <button class="suggestion" type="button" data-prompt="Help me outline a clear plan for a project."><span>03</span><span>Shape a project into a clear plan</span><span class="suggestion-arrow">↗</span></button>
-            </div>
-          </div>
-        {% else %}
-          <div class="login-stage">
-            <div class="login-glow" aria-hidden="true"></div>
-            <div class="login-content">
-              <div class="login-logo-frame"><img src="{{ url_for('static', filename='aurrexa-mark.jpeg') }}" alt="AURREXA crystalline A logo" class="login-logo"></div>
-              <div class="eyebrow"><span class="eyebrow-line"></span> YOUR INTELLIGENCE, IN MOTION <span class="eyebrow-line"></span></div>
-              <h1>Ask with<br><span>intent.</span></h1>
-              <p>A focused AI workspace for ideas worth keeping. Sign in to begin a private conversation.</p>
-              <a class="google-signin" href="{{ url_for('google_login') }}"><span class="google-g" aria-hidden="true">G</span><span>Continue with Google</span><span class="signin-arrow" aria-hidden="true">→</span></a>
-              <div class="login-assurance"><span class="privacy-lock" aria-hidden="true">◈</span> Your chats are private to your account</div>
-            </div>
-            <div class="login-corner-mark" aria-hidden="true">A<span>.</span></div>
-          </div>
-        {% endif %}
-      </section>
-
-      {% if user.is_authenticated %}
-        <footer class="composer-dock">
-          <form class="composer" id="chatForm" autocomplete="off">
-            <label class="sr-only" for="messageInput">Message AURREXA</label>
-            <textarea id="messageInput" name="message" rows="1" maxlength="8000" placeholder="Ask anything. Keep exploring…" aria-describedby="composerHelp"></textarea>
-            <div class="composer-controls">
-              <span class="composer-context"><span class="context-dot"></span> GROQ · {{ config.get('GROQ_MODEL', 'openai/gpt-oss-20b') }}</span>
-              <div class="composer-right"><span class="keyboard-hint" id="composerHelp">Enter to send <span>·</span> Shift + Enter for a new line</span><button class="send-button" id="sendButton" type="submit" aria-label="Send message"><span>Send</span><span class="send-arrow" aria-hidden="true">↑</span></button></div>
-            </div>
-          </form>
-          <p class="composer-disclaimer">AURREXA can make mistakes. Verify important information.</p>
-        </footer>
-      {% else %}
-        <footer class="login-footer"><span>END-TO-END SESSION SECURITY</span><span class="footer-divider"></span><span>POWERED BY GROQ</span></footer>
-      {% endif %}
-    </main>
+  <div class="identity-card">
+    <span class="identity-orb"></span>
+    <div class="identity-copy">
+      <span class="identity-caption">PRIVATE WORKSPACE</span>
+      <span class="identity-email">AI SPACE PREVIEW</span>
+    </div>
   </div>
-  <div class="mobile-scrim" id="mobileScrim" hidden></div>
+
+  <a class="sidebar-action" href="#chat">
+    <span class="google-g">✦</span>
+    <span>Explore AURREXA</span>
+  </a>
+
+  <div class="sidebar-section-heading">
+    <span class="sidebar-label">YOUR WORKSPACE</span>
+  </div>
+
+  <div class="history-hint">
+    Welcome to AURREXA. Your personal AI workspace is ready to explore.
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="privacy-chip"><span class="privacy-lock">◈</span>Private by design</div>
+    <div class="sidebar-footer">
+      <span class="footer-signal"></span>
+      <span>AURREXA CORE</span>
+      <span class="footer-version">v1.0</span>
+    </div>
+  </div>
+</aside>
+
+<main class="main-panel">
+  <header class="topbar">
+    <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Toggle navigation" aria-expanded="false">
+      <span></span><span></span>
+    </button>
+
+    <div class="topbar-title">
+      <span class="topbar-kicker">AI CONVERSATION SPACE</span>
+      <span class="topbar-heading">Your thinking, amplified.</span>
+    </div>
+
+    <div class="topbar-status">
+      <span class="status-indicator"></span>FRONTEND PREVIEW
+    </div>
+  </header>
+
+  <section class="conversation" id="chat" aria-label="AURREXA workspace">
+    <div class="login-stage">
+      <div class="login-glow"></div>
+
+      <div class="login-content">
+        <div class="login-logo-frame">
+          <img src="/Aurrexa-ai/static/aurrexa-mark.jpeg" alt="AURREXA logo" class="login-logo">
+        </div>
+
+        <div class="eyebrow">
+          <span class="eyebrow-line"></span>
+          THE FUTURE IS PERSONAL
+          <span class="eyebrow-line"></span>
+        </div>
+
+        <h1>Ask with<br><span>intent.</span></h1>
+
+        <p>
+          Welcome to AURREXA — a focused AI workspace for ideas worth keeping.
+          Your next big thought starts here.
+        </p>
+
+        <a class="google-signin" href="#chat-input" id="exploreButton">
+          <span class="google-g">✦</span>
+          <span>Enter Your Workspace</span>
+          <span class="signin-arrow">→</span>
+        </a>
+
+        <div class="login-assurance">
+          <span class="privacy-lock">◈</span>
+          Your personal AI space
+        </div>
+      </div>
+
+      <div class="login-corner-mark">A<span>.</span></div>
+    </div>
+  </section>
+
+  <footer class="composer-dock">
+    <form class="composer" id="chatForm">
+      <label for="messageInput" style="display:none">Message AURREXA</label>
+      <textarea id="messageInput" rows="1" maxlength="8000" placeholder="Explore your ideas…"></textarea>
+
+      <div class="composer-controls">
+        <span class="composer-context"><span class="context-dot"></span>AURREXA AI</span>
+        <div class="composer-right">
+          <span class="keyboard-hint">Frontend preview only</span>
+          <button class="send-button" type="submit">
+            <span>Send</span><span>↑</span>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <p class="composer-disclaimer">
+      Preview interface — AI responses require a connected backend.
+    </p>
+  </footer>
+</main>
+```
+
+  </div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const chatForm = document.getElementById('chatForm');
+    const messageInput = document.getElementById('messageInput');
+    const conversation = document.querySelector('.conversation');
+
+    mobileMenu.addEventListener('click', () => {
+      const open = sidebar.classList.toggle('open');
+      mobileMenu.setAttribute('aria-expanded', String(open));
+    });
+
+    document.getElementById('exploreButton').addEventListener('click', () => {
+      messageInput.focus();
+    });
+
+    chatForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const message = messageInput.value.trim();
+      if (!message) {
+        messageInput.focus();
+        return;
+      }
+
+      const row = document.createElement('div');
+      row.style.cssText = 'width:min(100%,760px);margin:12px auto;padding:15px 18px;border:1px solid rgba(0,166,255,.25);border-radius:12px;background:rgba(0,166,255,.06);line-height:1.7;overflow-wrap:anywhere;';
+      const label = document.createElement('div');
+      label.textContent = 'YOU';
+      label.style.cssText = 'margin-bottom:7px;color:#00a6ff;font-size:10px;letter-spacing:2px;';
+      const text = document.createElement('div');
+      text.textContent = message;
+      row.append(label, text);
+      conversation.appendChild(row);
+
+      const notice = document.createElement('div');
+      notice.style.cssText = 'width:min(100%,760px);margin:12px auto;padding:15px 18px;border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#9aa9bd;line-height:1.7;';
+      notice.textContent = 'This is the GitHub Pages preview. Connect the AURREXA backend to enable AI replies.';
+      conversation.appendChild(notice);
+
+      messageInput.value = '';
+      conversation.scrollTop = conversation.scrollHeight;
+    });
+
+    messageInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        chatForm.requestSubmit();
+      }
+    });
+  </script>
+
 </body>
 </html>
