@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="description" content="AURREXA — a focused AI conversation space.">
+  <title>AURREXA — AI Conversation Space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body data-authenticated="{{ 'true' if user.is_authenticated else 'false' }}" data-user-email="{{ user.email if user.is_authenticated else '' }}">
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="AURREXA navigation">
+      <a class="brand" href="/" aria-label="AURREXA home">
+        <span class="brand-mark-wrap"><img class="brand-mark" src="{{ url_for('static', filename='aurrexa-mark.jpeg') }}" alt="AURREXA crystalline A logo"></span>
+        <span class="brand-name">AURREXA<span class="brand-period">.</span></span>
+      </a>
+
+      <div class="sidebar-rule"></div>
+      <div class="sidebar-label">YOUR WORKSPACE</div>
+      {% if user.is_authenticated %}
+        <div class="identity-card">
+          <span class="identity-orb" aria-hidden="true"></span>
+          <div class="identity-copy">
+            <span class="identity-caption">SIGNED IN AS</span>
+            <span class="identity-email" title="{{ user.email }}">{{ user.email }}</span>
+          </div>
+        </div>
+        <form class="logout-form" action="{{ url_for('logout') }}" method="post" id="logoutForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="sidebar-action" type="submit" id="logoutButton">
+            <span class="action-icon" aria-hidden="true">↗</span><span>Log out</span>
+          </button>
+        </form>
+      {% else %}
+        <div class="identity-card identity-card-muted">
+          <span class="identity-orb identity-orb-muted" aria-hidden="true"></span>
+          <div class="identity-copy">
+            <span class="identity-caption">PRIVATE WORKSPACE</span>
+            <span class="identity-email">Sign in to continue</span>
+          </div>
+        </div>
+        <a class="sidebar-action sidebar-login" href="{{ url_for('google_login') }}">
+          <span class="google-g" aria-hidden="true">G</span><span>Continue with Google</span><span class="action-arrow" aria-hidden="true">↗</span>
+        </a>
+      {% endif %}
+
+      <div class="sidebar-section-heading">
+        <span class="sidebar-label">RECENT EXCHANGES</span>
+        {% if user.is_authenticated %}<span class="live-dot" aria-label="History connected"></span>{% endif %}
+      </div>
+      <div class="history-hint" id="historyHint">{% if user.is_authenticated %}Your saved conversations appear in the chat feed.{% else %}Sign in to load your private chat history.{% endif %}</div>
+
+      <div class="sidebar-bottom">
+        <div class="privacy-chip"><span class="privacy-lock" aria-hidden="true">◈</span><span>Private by design</span></div>
+        <div class="sidebar-footer"><span class="footer-signal"></span><span>AURREXA CORE</span><span class="footer-version">v1.0</span></div>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Open navigation" aria-expanded="false"><span></span><span></span></button>
+        <div class="topbar-title"><span class="topbar-kicker">AI CONVERSATION SPACE</span><span class="topbar-heading">Your thinking, amplified.</span></div>
+        <div class="topbar-status"><span class="status-indicator"></span><span>{% if user.is_authenticated %}SECURE SESSION{% else %}AUTHENTICATION REQUIRED{% endif %}</span></div>
+      </header>
+
+      <section class="conversation" aria-label="Conversation">
+        <div class="flash-stack" id="flashStack" aria-live="polite">
+          {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div class="flash-message flash-{{ category }}" role="status">{{ message }}</div>
+          {% endfor %}
+        </div>
+
+        {% if user.is_authenticated %}
+          <div class="history-loader-row" id="historyLoaderRow" hidden>
+            <button class="load-earlier" id="loadEarlier" type="button">↑ &nbsp; Load earlier exchanges</button>
+          </div>
+          <div class="message-feed" id="messageFeed" role="log" aria-live="polite" aria-relevant="additions text">
+            <div class="loading-history" id="loadingHistory"><span class="mini-spinner" aria-hidden="true"></span><span>Restoring your conversations…</span></div>
+          </div>
+          <div class="empty-state" id="emptyState" hidden>
+            <div class="empty-logo-frame"><img src="{{ url_for('static', filename='aurrexa-mark.jpeg') }}" alt="" class="empty-logo"></div>
+            <div class="eyebrow"><span class="eyebrow-line"></span> AURREXA INTELLIGENCE <span class="eyebrow-line"></span></div>
+            <h1>Where will your<br><span>curiosity lead?</span></h1>
+            <p>Start with a question. Keep every useful answer in your private history.</p>
+            <div class="suggestion-list" aria-label="Suggested prompts">
+              <button class="suggestion" type="button" data-prompt="Help me think through a difficult decision."><span>01</span><span>Think through a difficult decision</span><span class="suggestion-arrow">↗</span></button>
+              <button class="suggestion" type="button" data-prompt="Explain a complex idea in simple terms."><span>02</span><span>Make a complex idea feel simple</span><span class="suggestion-arrow">↗</span></button>
+              <button class="suggestion" type="button" data-prompt="Help me outline a clear plan for a project."><span>03</span><span>Shape a project into a clear plan</span><span class="suggestion-arrow">↗</span></button>
+            </div>
+          </div>
+        {% else %}
+          <div class="login-stage">
+            <div class="login-glow" aria-hidden="true"></div>
+            <div class="login-content">
+              <div class="login-logo-frame"><img src="{{ url_for('static', filename='aurrexa-mark.jpeg') }}" alt="AURREXA crystalline A logo" class="login-logo"></div>
+              <div class="eyebrow"><span class="eyebrow-line"></span> YOUR INTELLIGENCE, IN MOTION <span class="eyebrow-line"></span></div>
+              <h1>Ask with<br><span>intent.</span></h1>
+              <p>A focused AI workspace for ideas worth keeping. Sign in to begin a private conversation.</p>
+              <a class="google-signin" href="{{ url_for('google_login') }}"><span class="google-g" aria-hidden="true">G</span><span>Continue with Google</span><span class="signin-arrow" aria-hidden="true">→</span></a>
+              <div class="login-assurance"><span class="privacy-lock" aria-hidden="true">◈</span> Your chats are private to your account</div>
+            </div>
+            <div class="login-corner-mark" aria-hidden="true">A<span>.</span></div>
+          </div>
+        {% endif %}
+      </section>
+
+      {% if user.is_authenticated %}
+        <footer class="composer-dock">
+          <form class="composer" id="chatForm" autocomplete="off">
+            <label class="sr-only" for="messageInput">Message AURREXA</label>
+            <textarea id="messageInput" name="message" rows="1" maxlength="8000" placeholder="Ask anything. Keep exploring…" aria-describedby="composerHelp"></textarea>
+            <div class="composer-controls">
+              <span class="composer-context"><span class="context-dot"></span> GROQ · {{ config.get('GROQ_MODEL', 'openai/gpt-oss-20b') }}</span>
+              <div class="composer-right"><span class="keyboard-hint" id="composerHelp">Enter to send <span>·</span> Shift + Enter for a new line</span><button class="send-button" id="sendButton" type="submit" aria-label="Send message"><span>Send</span><span class="send-arrow" aria-hidden="true">↑</span></button></div>
+            </div>
+          </form>
+          <p class="composer-disclaimer">AURREXA can make mistakes. Verify important information.</p>
+        </footer>
+      {% else %}
+        <footer class="login-footer"><span>END-TO-END SESSION SECURITY</span><span class="footer-divider"></span><span>POWERED BY GROQ</span></footer>
+      {% endif %}
+    </main>
+  </div>
+  <div class="mobile-scrim" id="mobileScrim" hidden></div>
+</body>
+</html>
